@@ -34,7 +34,7 @@ class ErrorDataset(Dataset):
         force_upsampling,# force to upsample to max_seq_len
         backbone,        # backbone type
         division_type,   # data division type
-
+        videos_type,     # videos type (all, error, normal)
     ):
         # file path
         assert os.path.exists(feat_folder) and os.path.exists(json_file)
@@ -43,6 +43,7 @@ class ErrorDataset(Dataset):
         self.feat_folder = feat_folder
         self.backbone = backbone
         self.division_type = division_type
+        self.videos_type = videos_type
 
         self.file_prefix = file_prefix if file_prefix is not None else ''
         self.file_suffix = file_suffix if file_suffix is not None else '_360p'
@@ -66,7 +67,7 @@ class ErrorDataset(Dataset):
         self.crop_ratio = crop_ratio
 
         # load database and select the subset
-        dict_db, label_dict = self._load_json_db(self.json_file)
+        dict_db, label_dict = self._load_json_db(self.json_file, videos_type)
         # "empty" noun categories on epic-kitchens
         assert len(label_dict) <= num_classes
         self.data_list = dict_db
@@ -94,7 +95,7 @@ class ErrorDataset(Dataset):
     def get_attributes(self):
         return self.db_attributes
 
-    def _load_json_db(self, json_file):
+    def _load_json_db(self, json_file, videos_type='all'):
         # load database and select the subset
         with open(json_file, 'r') as fid:
             json_data = json.load(fid)
@@ -121,10 +122,18 @@ class ErrorDataset(Dataset):
             if not os.path.exists(feat_file):
                 continue
             # skip normal videos
-            skip_normal, skip_error = False, False  # All videos (Error + Normal)
+            # skip_normal, skip_error = False, False  # All videos (Error + Normal)
             # skip_normal, skip_error = True, False   # All Error videos
             # skip_normal, skip_error = False, True  # All Normal videos
             # skip_normal, skip_error = True, True    # No videos
+            if videos_type == "all":
+                skip_normal, skip_error = False, False  # All videos (Error + Normal)
+            elif videos_type == "error":
+                skip_normal, skip_error = True, False
+            elif videos_type == "normal":
+                skip_normal, skip_error = False, True
+            else:
+                skip_normal, skip_error = True, True
             recipe_has_error_id = int(key.split("_")[1])
             if skip_normal and (1 <= recipe_has_error_id <= 25 or 100 <= recipe_has_error_id <= 125):
                 continue

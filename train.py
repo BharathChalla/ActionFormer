@@ -206,7 +206,7 @@ if __name__ == '__main__':
                         help='path to a checkpoint (default: none)')
     # Added to CLI
     parser.add_argument('--backbone', default='omnivore', type=str,
-                        choices=['omnivore', '3dresnet', 'videomae', 'slowfast'])
+                        choices=['omnivore', '3dresnet', 'videomae', 'slowfast', 'x3d'])
     parser.add_argument('--division_type', default='recordings', type=str,
                         choices=['recordings', 'person', 'environment', 'recipes'])
     parser.add_argument('--feat_folder', default='features', type=str,)

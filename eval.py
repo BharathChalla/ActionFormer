@@ -36,6 +36,7 @@ def main(args):
     cfg['dataset']['num_frames'] = args.num_frames
     cfg['dataset']['feat_stride'] = args.stride
     cfg['dataset']['division_type'] = args.division_type
+    cfg['dataset']['videos_type'] = args.videos_type
 
     json_file_path = cfg['dataset']['json_file']
     json_file_dir = os.path.dirname(json_file_path)
@@ -85,6 +86,17 @@ def main(args):
     )
 
     """3. create model and evaluator"""
+    if args.backbone == 'omnivore':
+        cfg['model']['input_dim'] = 1024
+    elif args.backbone == 'videomae':
+        cfg['model']['input_dim'] = 400
+    elif args.backbone == '3dresnet':
+        cfg['model']['input_dim'] = 400
+    elif args.backbone == 'slowfast':
+        cfg['model']['input_dim'] = 400
+    elif args.backbone == 'x3d':
+        cfg['model']['input_dim'] = 400
+
     # model
     model = make_meta_arch(cfg['model_name'], **cfg['model'])
     # not ideal for multi GPU training, ok for now
@@ -160,5 +172,7 @@ if __name__ == '__main__':
     # Default is 30 for all backbones
     parser.add_argument('--num_frames', default=30, type=int, )
     parser.add_argument('--stride', default=30, type=int,)
+    parser.add_argument('--videos_type', default='', type=str,
+                        choices=['all', 'normal', 'error'])
     args = parser.parse_args()
     main(args)
