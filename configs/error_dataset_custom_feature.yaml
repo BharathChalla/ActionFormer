@@ -4,7 +4,7 @@ val_split: ['test']
 dataset: {
   backbone: omnivore,
   division_type: recordings,
-  json_file: ./data/error_dataset/annotations/annotations_actionformer.json,
+  json_file: ./annotations/annotations_actionformer.json,
   feat_folder: './data/error_dataset/features/omnivore_swinB_epic',
   file_prefix: ~,
   file_suffix: '_360p',
