@@ -34,6 +34,25 @@ def main(args):
         raise ValueError("Config file does not exist.")
     pprint(cfg)
 
+    cfg['dataset']['backbone'] = args.backbone
+    cfg['dataset']['feat_folder'] = args.feat_folder
+    cfg['dataset']['num_frames'] = args.num_frames
+    cfg['dataset']['feat_stride'] = args.stride
+    cfg['dataset']['division_type'] = args.division_type
+
+    json_file_path = cfg['dataset']['json_file']
+    json_file_dir = os.path.dirname(json_file_path)
+    json_file_name = os.path.basename(json_file_path).replace('.json', f'_{args.division_type}.json')
+    cfg['dataset']['json_file'] = os.path.join(json_file_dir, json_file_name)
+
+    backbone = args.backbone
+    division_type = args.division_type
+    output_folder_name = f"{backbone}_{division_type}"
+    if backbone == 'omnivore':
+        seg_size = int(cfg['dataset']['num_frames'] / cfg['dataset']['default_fps'])
+        reg_range = len(cfg['model']['regression_range'])
+        output_folder_name += f"_{seg_size}s"
+
     # prep for output folder (based on time stamp)
     if not os.path.exists(cfg['output_folder']):
         os.mkdir(cfg['output_folder'])
@@ -44,7 +63,9 @@ def main(args):
             cfg['output_folder'], cfg_filename + '_' + str(ts))
     else:
         ckpt_folder = os.path.join(
-            cfg['output_folder'], cfg_filename + '_' + str(args.output))
+            cfg['output_folder'],
+            output_folder_name + '_' + args.output
+        )
     if not os.path.exists(ckpt_folder):
         os.mkdir(ckpt_folder)
     # tensorboard writer
@@ -174,5 +195,15 @@ if __name__ == '__main__':
                         help='name of exp folder (default: none)')
     parser.add_argument('--resume', default='', type=str, metavar='PATH',
                         help='path to a checkpoint (default: none)')
+    # Added to CLI
+    parser.add_argument('--backbone', default='omnivore', type=str,
+                        choices=['omnivore', '3dresnet', 'videomae'])
+    parser.add_argument('--division_type', default='recordings', type=str,
+                        choices=['recordings', 'person', 'environment', 'recipes'])
+    parser.add_argument('--feat_folder', default='features', type=str,)
+
+    # Default is 30 for all backbones
+    parser.add_argument('--num_frames', default=30, type=int, )
+    parser.add_argument('--stride', default=30, type=int,)
     args = parser.parse_args()
     main(args)

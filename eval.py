@@ -21,12 +21,38 @@ from libs.utils import valid_one_epoch, ANETdetection, fix_random_seed
 ################################################################################
 def main(args):
     """0. load config"""
+    # ToDo:
+    # args.epoch = 21  # Best epoch for omnivore_epic
+    # args.epoch = 35  # Best epoch for omnivore_ego4d
     # sanity check
     if os.path.isfile(args.config):
         cfg = load_config(args.config)
     else:
         raise ValueError("Config file does not exist.")
     assert len(cfg['val_split']) > 0, "Test set must be specified!"
+
+    cfg['dataset']['backbone'] = args.backbone
+    cfg['dataset']['feat_folder'] = args.feat_folder
+    cfg['dataset']['num_frames'] = args.num_frames
+    cfg['dataset']['feat_stride'] = args.stride
+    cfg['dataset']['division_type'] = args.division_type
+
+    json_file_path = cfg['dataset']['json_file']
+    json_file_dir = os.path.dirname(json_file_path)
+    json_file_name = os.path.basename(json_file_path).replace('.json', f'_{args.division_type}.json')
+    cfg['dataset']['json_file'] = os.path.join(json_file_dir, json_file_name)
+
+    backbone = args.backbone
+    division_type = args.division_type
+    output_folder_name = f"{backbone}_{division_type}"
+    if backbone == 'omnivore':
+        seg_size = int(cfg['dataset']['num_frames'] / cfg['dataset']['default_fps'])
+        reg_range = len(cfg['model']['regression_range'])
+        output_folder_name += f"_{seg_size}s"
+
+    # ToDo: override the args.ckpt with the cfg generated ckpt folder
+    args.ckpt = os.path.join(cfg['output_folder'], output_folder_name + '_' + str(args.ckpt))
+
     if ".pth.tar" in args.ckpt:
         assert os.path.isfile(args.ckpt), "CKPT file does not exist!"
         ckpt_file = args.ckpt
@@ -123,5 +149,16 @@ if __name__ == '__main__':
                         help='Only save the ouputs without evaluation (e.g., for test set)')
     parser.add_argument('-p', '--print-freq', default=10, type=int,
                         help='print frequency (default: 10 iterations)')
+
+    # Added to CLI
+    parser.add_argument('--backbone', default='omnivore', type=str,
+                        choices=['omnivore', '3dresnet', 'videomae'])
+    parser.add_argument('--division_type', default='recordings', type=str,
+                        choices=['recordings', 'person', 'environment', 'recipes'])
+    parser.add_argument('--feat_folder', default='features', type=str,)
+
+    # Default is 30 for all backbones
+    parser.add_argument('--num_frames', default=30, type=int, )
+    parser.add_argument('--stride', default=30, type=int,)
     args = parser.parse_args()
     main(args)
