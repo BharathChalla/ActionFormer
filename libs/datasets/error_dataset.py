@@ -41,6 +41,8 @@ class ErrorDataset(Dataset):
         assert isinstance(split, tuple) or isinstance(split, list)
         assert crop_ratio == None or len(crop_ratio) == 2
         self.feat_folder = feat_folder
+        self.backbone = backbone
+        self.division_type = division_type
 
         self.file_prefix = file_prefix if file_prefix is not None else ''
         self.file_suffix = file_suffix if file_suffix is not None else '_360p'
@@ -113,6 +115,8 @@ class ErrorDataset(Dataset):
                 continue
             # or does not have the feature file
             features_dir = os.path.join(self.feat_folder, self.file_prefix + key + self.file_suffix)
+            if self.backbone != 'omnivore':
+                self.file_ext = '.npy'
             feat_file = os.path.join(features_dir, f"video_features{self.file_ext}")
             if not os.path.exists(feat_file):
                 continue
@@ -164,77 +168,6 @@ class ErrorDataset(Dataset):
 
         return dict_db, label_dict
 
-    def _load_csv_db(self, csv_file):
-        # ToDo: Refactor this to pass an argument to the constructor
-        fps = 29.97
-
-        # ToDo: Remove this hard code path
-        dataset_dir = "/data/error_dataset"
-        annotations_dir = os.path.join(dataset_dir, "annotations")
-        data_splits_dir = os.path.join(dataset_dir, "video_splits", "normal_error")
-
-        step_idx_path = os.path.join(annotations_dir, "step_idx_description.csv")
-        step_annotations_path = os.path.join(annotations_dir, "step_annotations.csv")
-        video_durations_path = os.path.join(annotations_dir, "video_durations.csv")
-
-        cols = ["step_id", "step_description"]
-        step_idx = pd.read_csv(step_idx_path, names=cols)
-        label_dict = {step_idx.iloc[i]["step_description"]: step_idx.iloc[i]["step_id"] for i in range(len(step_idx))}
-        step_annotations = pd.read_csv(step_annotations_path)
-
-        # ToDo: Generate splits based on the recording ids
-        data_dir_path = os.path.join(data_splits_dir, self.split[0])
-        recipe_id_dirs = os.listdir(data_dir_path)
-        recording_ids = []
-        for recipe_dir in recipe_id_dirs:
-            recipe_dir_path = os.path.join(data_dir_path, recipe_dir)
-            recording_ids += [v.split('.')[0] for v in os.listdir(recipe_dir_path)]
-
-        # fill in the db (immutable after wards)
-        dict_db = tuple()
-        df = pd.read_csv(video_durations_path, names=["recording_id", "duration"])
-        video_durations = {df.iloc[i]["recording_id"]: df.iloc[i]["duration"] for i in range(len(df))}
-        for recording_id in recording_ids:
-            rec_id_annotations = step_annotations[step_annotations["recording_id"] == recording_id]
-            # get annotations if available
-            if len(rec_id_annotations) == 0:
-                continue
-            rec_id_annotations.reset_index(inplace=True)
-            # get video duration if available
-            # ToDo: get duration from video Pytorch Video and using the recording id
-            if recording_id not in video_durations:
-                recipe_id = recording_id.split("_")[0]
-                video_path = os.path.join(data_dir_path, recipe_id, recording_id + ".mp4")
-                torch_video = EncodedVideo.from_path(video_path)
-                duration = float(torch_video.duration)
-            else:
-                duration = video_durations[recording_id]
-
-            num_steps = len(rec_id_annotations)
-            segments = np.zeros([num_steps, 2], dtype=np.float32)
-            labels = np.zeros([num_steps, ], dtype=np.int64)
-            has_errors = np.zeros([num_steps, ], dtype=np.bool8)
-
-            for idx, step_annotation in rec_id_annotations.iterrows():
-                step_id = int(step_annotation["step_id"])
-                start_time = float(step_annotation["start_time"])
-                end_time = float(step_annotation["end_time"])
-                has_error = bool(step_annotation["has_error"])
-
-                segments[idx][0] = start_time
-                segments[idx][1] = end_time
-                labels[idx] = step_id
-                has_errors[idx] = has_error
-
-            dict_db += ({
-                            'id': recording_id,
-                            'fps': fps,
-                            'duration': duration,
-                            'segments': segments,
-                            'labels': labels
-                        },)
-        return dict_db, label_dict
-
     def __len__(self):
         return len(self.data_list)
 
@@ -245,9 +178,12 @@ class ErrorDataset(Dataset):
         video_item = self.data_list[idx]
 
         # load features
-        filename = os.path.join(self.feat_folder, video_item['id'] + self.file_suffix, "video_features.npz")
-        with np.load(filename) as data:
-            feats = data['video_features'].astype(np.float32)
+        filename = os.path.join(self.feat_folder, video_item['id'] + self.file_suffix, "video_features" + self.file_ext)
+        if self.file_ext == '.npz':
+            with np.load(filename) as data:
+                feats = data['video_features'].astype(np.float32)
+        elif self.file_ext == '.npy':
+            feats = np.load(filename).astype(np.float32)
 
         # Todo: Continue from here
         # deal with downsampling (= increased feat stride)

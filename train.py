@@ -32,7 +32,6 @@ def main(args):
         cfg = load_config(args.config)
     else:
         raise ValueError("Config file does not exist.")
-    pprint(cfg)
 
     cfg['dataset']['backbone'] = args.backbone
     cfg['dataset']['feat_folder'] = args.feat_folder
@@ -52,6 +51,16 @@ def main(args):
         seg_size = int(cfg['dataset']['num_frames'] / cfg['dataset']['default_fps'])
         reg_range = len(cfg['model']['regression_range'])
         output_folder_name += f"_{seg_size}s"
+    elif backbone == 'videomae':
+        cfg['dataset']['input_dim'] = 400
+        cfg['model']['input_dim'] = 400
+    elif backbone == '3dresnet':
+        cfg['dataset']['input_dim'] = 0
+        cfg['model']['input_dim'] = 0
+    elif backbone == 'slowfast':
+        cfg['dataset']['input_dim'] = 0
+        cfg['model']['input_dim'] = 0
+    pprint(cfg)
 
     # prep for output folder (based on time stamp)
     if not os.path.exists(cfg['output_folder']):
