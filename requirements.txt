@@ -3,8 +3,11 @@ torchvision==0.12.0+cu113
 torchaudio==0.11.0
 --extra-index-url https://download.pytorch.org/whl/cu113
 tensorboard
-numpy==1.23.0
+einops
+pytorchvideo
+timm
 pyyaml
 pandas
 h5py
 joblib
+numpy==1.23.0

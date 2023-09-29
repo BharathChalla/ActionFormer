@@ -4,10 +4,10 @@ import numpy as np
 
 
 def combine_features():
-    backbone = 'videomae'
-    features_root_dir = "/data/error_dataset/features"
+    backbone = '3dresnet'
+    features_root_dir = "/home/rxp190007/DATA/features"
 
-    one_sec_features_dir = os.path.join(features_root_dir, "video_mae")
+    one_sec_features_dir = os.path.join(features_root_dir, backbone)
     features_save_dir = os.path.join(features_root_dir, backbone)
     for rec_id in sorted(os.listdir(one_sec_features_dir)):
         rec_dir = os.path.join(one_sec_features_dir, rec_id)
@@ -24,7 +24,6 @@ def combine_features():
         os.makedirs(os.path.dirname(video_feat_path), exist_ok=True)
         np.save(video_feat_path, video_feat)
         print(f"Saved {rec_id}: {video_feat_path}")
-    pass
 
 
 if __name__ == '__main__':
