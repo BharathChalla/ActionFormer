@@ -55,11 +55,11 @@ def main(args):
         cfg['dataset']['input_dim'] = 400
         cfg['model']['input_dim'] = 400
     elif backbone == '3dresnet':
-        cfg['dataset']['input_dim'] = 0
-        cfg['model']['input_dim'] = 0
+        cfg['dataset']['input_dim'] = 400
+        cfg['model']['input_dim'] = 400
     elif backbone == 'slowfast':
-        cfg['dataset']['input_dim'] = 0
-        cfg['model']['input_dim'] = 0
+        cfg['dataset']['input_dim'] = 400
+        cfg['model']['input_dim'] = 400
     pprint(cfg)
 
     # prep for output folder (based on time stamp)
@@ -206,7 +206,7 @@ if __name__ == '__main__':
                         help='path to a checkpoint (default: none)')
     # Added to CLI
     parser.add_argument('--backbone', default='omnivore', type=str,
-                        choices=['omnivore', '3dresnet', 'videomae'])
+                        choices=['omnivore', '3dresnet', 'videomae', 'slowfast'])
     parser.add_argument('--division_type', default='recordings', type=str,
                         choices=['recordings', 'person', 'environment', 'recipes'])
     parser.add_argument('--feat_folder', default='features', type=str,)
