@@ -116,7 +116,7 @@ class ErrorDataset(Dataset):
                 continue
             # or does not have the feature file
             features_dir = os.path.join(self.feat_folder, self.file_prefix + key + self.file_suffix)
-            if self.backbone != 'omnivore':
+            if self.backbone != 'omnivore' or self.num_frames == 30:
                 self.file_ext = '.npy'
             feat_file = os.path.join(features_dir, f"video_features{self.file_ext}")
             if not os.path.exists(feat_file):

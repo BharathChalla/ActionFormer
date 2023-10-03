@@ -51,6 +51,10 @@ def main(args):
         seg_size = int(cfg['dataset']['num_frames'] / cfg['dataset']['default_fps'])
         reg_range = len(cfg['model']['regression_range'])
         output_folder_name += f"_{seg_size}s"
+        if 'sub' in cfg['dataset']['feat_folder']:
+            feat_folder = cfg['dataset']['feat_folder']
+            sub_sample_size_str = os.path.basename(feat_folder).split('_')[-1]
+            output_folder_name += f"_{sub_sample_size_str}"
     elif backbone == 'videomae':
         cfg['dataset']['input_dim'] = 400
         cfg['model']['input_dim'] = 400
@@ -60,6 +64,9 @@ def main(args):
     elif backbone == 'slowfast':
         cfg['dataset']['input_dim'] = 400
         cfg['model']['input_dim'] = 400
+    elif backbone == 'x3d':
+        cfg['dataset']['input_dim'] = (192, 64)
+        cfg['model']['input_dim'] = (192, 64)
     pprint(cfg)
 
     # prep for output folder (based on time stamp)

@@ -50,6 +50,10 @@ def main(args):
         seg_size = int(cfg['dataset']['num_frames'] / cfg['dataset']['default_fps'])
         reg_range = len(cfg['model']['regression_range'])
         output_folder_name += f"_{seg_size}s"
+        if 'sub' in cfg['dataset']['feat_folder']:
+            feat_folder = cfg['dataset']['feat_folder']
+            sub_sample_size_str = os.path.basename(feat_folder).split('_')[-1]
+            output_folder_name += f"_{sub_sample_size_str}"
 
     # ToDo: override the args.ckpt with the cfg generated ckpt folder
     args.ckpt = os.path.join(cfg['output_folder'], output_folder_name + '_' + str(args.ckpt))
