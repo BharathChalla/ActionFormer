@@ -32,6 +32,8 @@ def parse_actionformer_results():
         backbone = file.split('_')[0]
         if backbone == 'omnivore':
             backbone += '_' + file.split('_')[1]
+            if 'sub' in file:
+                backbone += '_' + file.split('_')[2]
         division_type = file.split('_')[-2]
         videos_type = file.split('_')[-1].split('.')[0]
         results = parse_results(os.path.join(results_dir, file))

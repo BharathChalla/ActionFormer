@@ -55,6 +55,7 @@ def main(args):
             sub_sample_size_str = os.path.basename(feat_folder).split('_')[-1]
             output_folder_name += f"_{sub_sample_size_str}"
 
+    print(f"Output folder name: {output_folder_name}")
     # ToDo: override the args.ckpt with the cfg generated ckpt folder
     args.ckpt = os.path.join(cfg['output_folder'], output_folder_name + '_' + str(args.ckpt))
 

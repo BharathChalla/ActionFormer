@@ -218,6 +218,11 @@ class ANETdetection(object):
                 'label': preds['label'].tolist(),
                 'score': preds['score'].tolist()
             })
+        save_results = True
+        if save_results:
+            self.ground_truth.to_csv('gt.csv')
+            preds.to_csv('preds.csv')
+
         # always reset ap
         self.ap = None
 
