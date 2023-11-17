@@ -47,7 +47,7 @@ class PTGDataset(Dataset):
         self.videos_type = videos_type
 
         self.file_prefix = file_prefix if file_prefix is not None else ''
-        self.file_suffix = file_suffix if file_suffix is not None else ''
+        self.file_suffix = file_suffix if file_suffix is not None else '_360p'
         self.file_ext = file_ext
         self.json_file = json_file
 
@@ -152,9 +152,10 @@ class PTGDataset(Dataset):
             if value['subset'].lower() not in self.split:
                 continue
             # or does not have the feature file
-            features_dir = self.feat_folder
-            file_key = self.get_file_key(key)
-            feat_file = os.path.join(features_dir, f"{file_key}_4_features{self.file_ext}")
+            features_dir = os.path.join(self.feat_folder, self.file_prefix + key + self.file_suffix)
+            if self.backbone != 'omnivore' or self.num_frames == 30:
+                self.file_ext = '.npy'
+            feat_file = os.path.join(features_dir, f"video_features{self.file_ext}")
             if not os.path.exists(feat_file):
                 continue
 
@@ -208,11 +209,10 @@ class PTGDataset(Dataset):
         video_item = self.data_list[idx]
 
         # load features
-        file_key = self.get_file_key(video_item['id'])
-        filename = os.path.join(self.feat_folder, file_key + "_4_features" + self.file_ext)
+        filename = os.path.join(self.feat_folder, video_item['id'] + self.file_suffix, "video_features" + self.file_ext)
         if self.file_ext == '.npz':
             with np.load(filename) as data:
-                feats = data['features'].astype(np.float32)
+                feats = data['video_features'].astype(np.float32)
         elif self.file_ext == '.npy':
             feats = np.load(filename).astype(np.float32)
 

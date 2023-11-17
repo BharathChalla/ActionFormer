@@ -6,18 +6,18 @@ dataset: {
   division_type: recordings,
   videos_type: 'normal',
   json_file: './data/ptg_dataset/annotations/annotations_actionformer.json',
-  feat_folder: './data/ptg_dataset/features/omnivore_all',
+  feat_folder: './data/ptg_dataset/features/omnivore_actionformer',
   file_prefix: ~,
   file_suffix: ~,
   file_ext: .npz,
   num_classes: 109,
   input_dim: 1024,
-  feat_stride: 120,
+  feat_stride: 30,
   num_frames: 120,
   default_fps: 29.97,
   trunc_thresh: 0.3,
   crop_ratio: [0.9, 1.0],
-  max_seq_len: 1024,
+  max_seq_len: 2048,
 }
 model: {
   regression_range: [
@@ -38,7 +38,7 @@ model: {
 }
 opt: {
   learning_rate: 0.0001,
-  epochs: 20,
+  epochs: 100,
   weight_decay: 0.05,
 }
 loader: {
